@@ -95,32 +95,52 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
+  HAL_Delay(2000);
+  HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_SET);
   while (1)
   {
-	  if(HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET){
-			HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
-
-			press_report[2] = 7;  // send 'd'
-			press_report[3] = 18;  // send '0'
-			press_report[4] = 16;  // send 'm'
-			press_report[5] = 8;  // send 'e'
-			press_report[6] = 17;  // send 'n'
+	  if((HAL_GPIO_ReadPin(dit_GPIO_Port, dit_Pin) == GPIO_PIN_RESET)&
+			  (HAL_GPIO_ReadPin(da_GPIO_Port, da_Pin) == GPIO_PIN_RESET)){
+		  	press_report[0] = 0x11;  // send LeftControl & RightControl
 
 			USBD_HID_SendReport(&hUsbDeviceFS, press_report, PRESS_REPORT_SIZE);
 
 			HAL_Delay(50);
 
-			press_report[2] = 0;  // send button release
-			press_report[3] = 0;
-			press_report[4] = 0;
-			press_report[5] = 0;
-			press_report[6] = 0;
+			press_report[0] = 0;  // send button release
 
 			USBD_HID_SendReport(&hUsbDeviceFS, press_report, PRESS_REPORT_SIZE);
 
-			HAL_Delay(200);
+			HAL_Delay(50);
+	  }else if(HAL_GPIO_ReadPin(dit_GPIO_Port, dit_Pin) == GPIO_PIN_RESET){
+			HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
 
-			HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_SET);
+			press_report[0] = 0x01;  //7;// send LeftControl
+
+			USBD_HID_SendReport(&hUsbDeviceFS, press_report, PRESS_REPORT_SIZE);
+
+			HAL_Delay(50);
+
+			press_report[0] = 0;  // send button release
+
+			USBD_HID_SendReport(&hUsbDeviceFS, press_report, PRESS_REPORT_SIZE);
+
+			HAL_Delay(50);
+	  }else if(HAL_GPIO_ReadPin(da_GPIO_Port, da_Pin) == GPIO_PIN_RESET){
+			HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+
+			press_report[0] = 0x10;  //8;// send RightControl
+
+			USBD_HID_SendReport(&hUsbDeviceFS, press_report, PRESS_REPORT_SIZE);
+
+			HAL_Delay(50);
+
+			press_report[0] = 0;  // send button release
+
+			USBD_HID_SendReport(&hUsbDeviceFS, press_report, PRESS_REPORT_SIZE);
+
+			HAL_Delay(50);
 	  }
     /* USER CODE END WHILE */
 
@@ -213,7 +233,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : dit_Pin da_Pin */
   GPIO_InitStruct.Pin = dit_Pin|da_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
